@@ -144,7 +144,7 @@ insert into tbl_Tutor(Nome, CPF, Senha, RG, Foto, id_email, id_endereco) values(
 
 SHOW PROCEDURE STATUS;
 
-call procInsertTutor('Adriana', '123.123.123-12', 'couldWorkPlis@gmail.com', 'def', '88.888.888-8', '2007/06/05', '96666-6666', 77, 1, null);
+call procInsertTutor('Guilherme', '350.294.713-01', 'guilherme@gmail.com', '2534', '12.251.578-8', '1956/08/03', '99478-2714', 11, 1, null);
 drop procedure procInsertTutor;
 #insert into tbl_Usuario(Nome, CPF, Email, Senha, RG, Genero, DataNascimento, Telefone, DDD, id_Endereco) values();
 DELIMITER $$
@@ -179,6 +179,11 @@ BEGIN
     insert into tbl_Tutor(Foto_Perfil, id_Usuario) values(NewFoto, idUsuario);
     
 END $$
+
+#git add .
+#git commit -m "Updates!! Tosday was update in insert, Updante end select of Tutor (Client)"
+#git push
+
 
 
 
@@ -414,6 +419,44 @@ select tbl_tutor.id, tbl_tutor.Foto_Perfil,
 				on tbl_Usuario.id_Telefone = tbl_Telefone.id
 			inner join tbl_Telefone_formato
 				on tbl_Telefone.id_telefone_formato = tbl_Telefone_formato.id;
+
+select * from vwAllPets;
+
+
+
+create view vwAllPets as
+select  tbl_Pet.id, tbl_Pet.Nome, tbl_Pet.DataNascimento, tbl_Pet.Foto, tbl_Pet.NumeroMicroship, tbl_Pet.Peso, tbl_Pet.Altura,
+		tbl_Sexo.Nome as Sexo,
+        tbl_Tamanho.Nome as Tamanho, tbl_Tamanho.Significado as Significado_Tamanho,
+        tbl_Raca.Nome as Raca,
+        tbl_Especie.Nome as Especie,
+        tbl_Nivel_Agressividade.Nivel as NivelAgressividade,
+        tbl_Tutor.id as idTutor,
+        tbl_Cor.Cor,
+        tbl_Nivel.Nivel as NivelCor,
+        tbl_Usuario.Nome as NomeTutor
+        
+			from tbl_Pet
+					inner join tbl_Sexo
+						on tbl_Pet.id_Sexo = tbl_Sexo.id
+					inner join tbl_Tamanho
+						on tbl_Pet.id_Tamanho = tbl_Tamanho.id
+					inner join tbl_Nivel_Agressividade
+						on tbl_Pet.id_Nivel_Agressividade = tbl_Nivel_Agressividade.id
+					inner join tbl_Tutor
+						on tbl_Pet.id_Tutor = tbl_Tutor.id
+					inner join tbl_Raca
+						on tbl_Pet.id_Raca = tbl_Raca.id
+					inner join tbl_Especie
+						on tbl_Raca.id_Especie = tbl_Especie.id
+					inner join tbl_Pet_Cor
+						on tbl_Pet_Cor.id_Pet = tbl_Pet.id
+                    inner join tbl_Cor
+						on tbl_Pet_Cor.id_Cor = tbl_Cor.id
+					inner join tbl_Nivel
+						on tbl_Pet_Cor.id_Nivel = tbl_Nivel.id
+					inner join tbl_Usuario
+						on tbl_Tutor.id_Usuario = tbl_Usuario.id;
                 
 desc tbl_Usuario;
 	
@@ -445,29 +488,50 @@ drop procedure procDeleteTutor;
 
 DELIMITER $$
 
-create procedure procDeleteTutor (IN idTutor int)
+create trigger tgrDeleteTutorUsuario
+					before delete on tbl_Tutor
+                    for each row
 BEGIN 
-
-	DECLARE idEndereco int;
-	DECLARE idEmail int;
-    
-    set idEndereco = (select tbl_Endereco.id 
-							from tbl_Endereco
-								inner join tbl_Tutor
-									on tbl_Tutor.id_Endereco = tbl_Endereco.id 
-							 where tbl_Tutor.id = idTutor);  
-    
-    set idEmail = (select tbl_Email.id 
-							from tbl_Email
-								inner join tbl_Tutor
-									on tbl_Tutor.id_Email = tbl_Email.id 
-							 where tbl_Tutor.id = idTutor);
-                             
-	delete from tbl_Tutor where id = idTutor;
-	delete from tbl_Endereco where id = idEndereco;
-	delete from tbl_Email where id = idEmail;
-                
 
       
 		
 END $$
+
+
+create table tbl_Cor(
+	id int not null auto_increment primary key,  
+    Cor varchar(15),
+    
+    unique index(id)	
+);
+
+
+create table tbl_Nivel (
+	id int not null auto_increment primary key,  
+    Nivel varchar(20),
+    
+    unique index(id)	
+);
+
+create table tbl_Pet_Cor(
+	id int not null auto_increment primary key,  
+    
+	id_Pet int not null,
+    constraint  fk_Pet_Intermediaria_Cor_and_Nivel
+		foreign key(id_Pet)
+		references tbl_Pet(id),
+        
+	id_Cor int not null,
+    constraint  fk_Cor_Intermediaria_Pet_and_Nivel
+		foreign key(id_Cor)
+		references tbl_Cor(id),
+        
+        
+	id_Nivel int not null,
+    constraint  fk_Nivel_Intermediaria_Pet_and_Cor
+		foreign key(id_Nivel)
+		references tbl_Nivel(id),
+    
+    unique index(id)	
+);
+
